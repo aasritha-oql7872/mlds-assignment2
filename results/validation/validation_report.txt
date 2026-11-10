@@ -1,0 +1,46 @@
+[PASS] 1. chain MDP vs value iteration: max |Q_dqn - Q*| = 0.000 (threshold 0.08)
+   Q* (value iteration) rows s=0..3: [[0.656, 0.729], [0.656, 0.81], [0.729, 0.9], [0.81, 1.0]]
+   Q  (DQN)             rows s=0..3: [[0.656000018119812, 0.7289999723434448], [0.656000018119812, 0.8100000023841858], [0.7289999723434448, 0.8999999761581421], [0.8100000023841858, 1.0]]
+[PASS] 1b. greedy policy goes right: [1, 1, 1, 1]
+[PASS] 2. terminal masking: Q = 1.000; expected 1.0 (without the (1-done) mask it would drift to 10.0)
+[PASS] 3. truncation handled as non-terminal (MSE loss): correct handling Q=9.99 (true 10.0); truncation-as-terminal Q=7.12 (predicted 6.90)
+   note: truncation-as-terminal with Huber loss gives Q=9.97 (close to 10.0): Huber hides rare terminal targets
+   step | Q(s,left)  Q(s,right) | a | r | done | y by hand | y from code
+      0 |    0.0126    -0.0485 | 0 | 1 | 0 |    0.9983 |    0.9983
+      1 |   -0.0018    -0.0394 | 0 | 1 | 0 |    0.9780 |    0.9780
+      2 |   -0.0232    -0.0268 | 0 | 1 | 0 |    0.9747 |    0.9747
+      3 |   -0.0439    -0.0266 | 1 | 1 | 0 |    0.9781 |    0.9781
+      4 |   -0.0230    -0.0266 | 0 | 1 | 0 |    0.9740 |    0.9740
+      5 |   -0.0440    -0.0274 | 1 | 1 | 0 |    0.9767 |    0.9767
+      6 |   -0.0246    -0.0265 | 0 | 1 | 0 |    0.9736 |    0.9736
+      7 |   -0.0455    -0.0277 | 1 | 1 | 0 |    0.9746 |    0.9746
+      8 |   -0.0280    -0.0268 | 1 | 1 | 0 |    0.9885 |    0.9885
+      9 |   -0.0121    -0.0378 | 0 | 1 | 0 |    0.9745 |    0.9745
+[PASS] 4. first 10 steps: targets and Huber loss match hand computation: loss code=0.49879, by hand=0.49879
+[PASS] 7a. replay buffer overwrites oldest: [3.0, 4.0, 5.0, 6.0, 7.0]
+[PASS] 7b. pacman preprocessing: shape (88, 80, 1), dtype int8, range [-128, 27]
+[PASS] 7c. frame stack at reset repeats first frame: stack shape (4, 88, 80)
+[PASS] 7d. frame stack shifts by one frame per step: obs'[0:3] == obs[1:4]
+[PASS] 7e. MsPacman has 9 actions: 9
+[FAIL] 5. learned policy pushes toward the lean: agreement with rule on 10000 visited states = 64.4% (chance = 50%, threshold 70%)
+   observation: median cart position in greedy rollouts = -1.53 (track limit is +-2.4): the policy also drifts the cart
+   ablation 'full DQN (gamma=0.95)' seed 0: last-100 mean reward 151.7
+   ablation 'full DQN (gamma=0.95)' seed 1: last-100 mean reward 134.0
+   ablation 'full DQN (gamma=0.95)' seed 2: last-100 mean reward 251.2
+   ablation 'no target network' seed 0: last-100 mean reward 12.9
+   ablation 'no target network' seed 1: last-100 mean reward 12.5
+   ablation 'no target network' seed 2: last-100 mean reward 12.2
+   ablation 'tiny replay buffer (=batch size)' seed 0: last-100 mean reward 143.2
+   ablation 'tiny replay buffer (=batch size)' seed 1: last-100 mean reward 288.8
+   ablation 'tiny replay buffer (=batch size)' seed 2: last-100 mean reward 188.9
+   ablation 'gamma=0.99' seed 0: last-100 mean reward 230.1
+   ablation 'gamma=0.99' seed 1: last-100 mean reward 284.9
+   ablation 'gamma=0.99' seed 2: last-100 mean reward 84.5
+   full DQN (gamma=0.95)               final MA100 reward   179.0 | max Q (last 50 eps)   22.6
+   no target network                   final MA100 reward    12.5 | max Q (last 50 eps) 4746847.2
+   tiny replay buffer (=batch size)    final MA100 reward   207.0 | max Q (last 50 eps)   21.0
+   gamma=0.99                          final MA100 reward   199.8 | max Q (last 50 eps)   97.6
+[PASS] 6a. gamma=0.95: max Q stays near 1/(1-gamma)=20: 22.6
+[PASS] 6b. gamma=0.99 raises the Q ceiling toward 100: 97.6
+[PASS] 6c. full DQN >= no-target-network: 179.0 vs 12.5
+[FAIL] 6d. full DQN >= tiny replay buffer: 179.0 vs 207.0
